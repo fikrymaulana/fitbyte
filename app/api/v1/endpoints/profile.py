@@ -31,7 +31,7 @@ def current_profile(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token subject")
     return user
 
-@router.get("/v1/user", response_model=ProfileOut, status_code=200)
+@router.get("/user", response_model=ProfileOut, status_code=200)
 def get_user(me: Profile = Depends(current_profile)):
     return ProfileOut(
         preference=me.preference,
@@ -44,7 +44,7 @@ def get_user(me: Profile = Depends(current_profile)):
         imageUri=me.image_uri,
     )
 
-@router.patch("/v1/user", response_model=dict, status_code=200)  # response body plain object sesuai kontrak
+@router.patch("/user", response_model=dict, status_code=200)  # response body plain object sesuai kontrak
 def patch_user(
     payload: ProfilePatch,
     db: Session = Depends(get_db),

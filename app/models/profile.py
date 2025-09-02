@@ -17,7 +17,6 @@ class Profile(Base):
     name = Column(String(60), nullable=True)
     image_uri = Column(String(1024), nullable=True)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     __table_args__ = (

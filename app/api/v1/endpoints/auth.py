@@ -11,6 +11,7 @@ from app.schemas.auth import (
     LoginRequest,
     LoginResponse,
 )
+from app.api.deps import get_current_user, get_current_user_payload
 
 from cuid2 import cuid_wrapper
 
@@ -55,3 +56,15 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
 
     token = create_access_token(sub=user.id, email=user.email)
     return LoginResponse(email=user.email, token=token)
+
+
+# High-throughput read-only route → stateless
+@router.get("/me-lite")
+def me_lite(payload=Depends(get_current_user_payload)):
+    return {"sub": payload["sub"], "email": payload["email"]}
+
+
+# Sensitive route → stateful
+@router.get("/me")
+def me(current_user: Authentication = Depends(get_current_user)):
+    return {"id": current_user.id, "email": current_user.email}

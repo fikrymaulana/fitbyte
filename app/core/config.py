@@ -3,12 +3,12 @@ from pydantic import Field
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 
-load_dotenv()  # Load environment variables from .env file if it exists
+load_dotenv()
 
 
 class Settings(BaseSettings):
     SECRET_KEY: str = Field(default_factory=lambda: secrets.token_hex(32))
-    DATABASE_URL: str = "postgresql://postgres:root@db:5432/fitbyte"
+    DATABASE_URL: str = "postgresql://postgres:root@localhost:5432/fitbyte"
     DEBUG: bool = False
     PROJECT_NAME: str = "FitByte"
     API_V1_STR: str = "/api/v1"

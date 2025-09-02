@@ -8,16 +8,16 @@ from app.core.database import Base
 
 from cuid2 import cuid_wrapper
 
-generate_cuid = cuid_wrapper()  # call: generate_cuid() -> str
+generate_cuid = cuid_wrapper()
 
 
 class Authentication(Base):
     __tablename__ = "authentications"
 
     id: Mapped[str] = mapped_column(
-        String(32),
+        String(255),
         primary_key=True,
-        default=generate_cuid,  # akan dipanggil saat INSERT jika id tidak diset
+        default=generate_cuid,
     )
 
     email: Mapped[str] = mapped_column(

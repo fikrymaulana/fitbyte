@@ -1,6 +1,18 @@
 from datetime import datetime, timedelta, timezone
+from typing import Any, Dict
+
 import jwt
+from jwt import (
+    ExpiredSignatureError,
+    InvalidAudienceError,
+    InvalidIssuerError,
+    InvalidSignatureError,
+    DecodeError,
+)
+
 from passlib.context import CryptContext
+from fastapi import HTTPException, status
+
 from app.core.config import settings
 
 
@@ -26,3 +38,33 @@ def create_access_token(sub: str, email: str) -> str:
         "aud": settings.JWT_AUD,
     }
     return jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")
+
+
+def decode_access_token(token: str) -> Dict[str, Any]:
+    try:
+        data = jwt.decode(
+            token,
+            settings.JWT_SECRET,
+            algorithms=["HS256"],
+            audience=settings.JWT_AUD,
+            issuer=settings.JWT_ISS,
+            options={"require": ["exp", "iss", "aud"]},
+        )
+        return data
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except (
+        InvalidAudienceError,
+        InvalidIssuerError,
+        InvalidSignatureError,
+        DecodeError,
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )

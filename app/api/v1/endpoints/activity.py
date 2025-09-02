@@ -28,7 +28,6 @@ def create_activity(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        print("ERROR:", e)  # Tambahkan ini untuk debug
         raise HTTPException(status_code=500, detail="Internal server error")
     return ActivityResponse(
         activityId=db_activity.id,

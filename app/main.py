@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.api import api_router
 from app.core.config import settings
 from app.core.database import engine, Base
+from app.models import authentication
 
 # Create database tables (with error handling)
 try:

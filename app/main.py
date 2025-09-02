@@ -16,7 +16,7 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     description="FitByte API Project for tracking fitness activities",
     version="1.0.0",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    openapi_url=f"{settings.API_V1_STR}/from app.api.v1.api import api_routeropenapi.json"
 )
 
 # CORS

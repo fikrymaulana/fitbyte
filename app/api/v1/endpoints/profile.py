@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 # from app.core.security import decode_token
 from app.models.profile import Profile
+from app.models.auth import Authentication
 from app.schemas.profile import ProfileOut, ProfilePatch
 
 router = APIRouter()
@@ -33,14 +34,22 @@ def current_profile(
     return user
 
 @router.get("/user", response_model=ProfileOut, status_code=200)
-def get_user(me: Profile = Depends(current_profile)):
+def get_user(
+    db: Session = Depends(get_db),
+    me: Profile = Depends(current_profile),
+):
+    # ambil authentication berdasarkan auth_id dari profile
+    auth = db.query(Authentication).filter(Authentication.id == me.auth_id).first()
+    if not auth:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="authentication not found")
+    
     return ProfileOut(
         preference=me.preference,
         weightUnit=me.weight_unit,
         heightUnit=me.height_unit,
         weight=float(me.weight) if me.weight is not None else None,
         height=float(me.height) if me.height is not None else None,
-        email="putra@gmail.com",
+        email=auth.email,
         name=me.name,
         imageUri=me.image_uri,
     )

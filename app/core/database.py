@@ -11,6 +11,14 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
+# Import semua model di sini
+from app.models.profile import Profile
+from app.models.auth import Authentication
+# import model lain jika ada
+
+# Buat semua tabel di database
+Base.metadata.create_all(bind=engine)
+
 def get_db():
     db = SessionLocal()
     try:

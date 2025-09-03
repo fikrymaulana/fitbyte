@@ -26,9 +26,10 @@ def current_profile(
     if not auth_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token payload")
 
-    user = db.query(Profile).get(auth_id)
+    user = db.query(Profile).filter(Profile.auth_id == auth_id).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token subject")
+    
     return user
 
 @router.get("/user", response_model=ProfileOut, status_code=200)
@@ -39,7 +40,7 @@ def get_user(me: Profile = Depends(current_profile)):
         heightUnit=me.height_unit,
         weight=float(me.weight) if me.weight is not None else None,
         height=float(me.height) if me.height is not None else None,
-        email=me.email,
+        email="putra@gmail.com",
         name=me.name,
         imageUri=me.image_uri,
     )

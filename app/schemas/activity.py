@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
 from enum import Enum
+from typing import Optional
 
 class ActivityTypeEnum(str, Enum):
     walking = "Walking"
@@ -27,3 +28,10 @@ class ActivityResponse(BaseModel):
     caloriesBurned: int
     createdAt: datetime
     updatedAt: datetime
+    
+from typing import Optional
+
+class ActivityUpdate(BaseModel):
+    activityType: Optional[ActivityTypeEnum] = Field(None, description="Activity type name")
+    doneAt: Optional[datetime] = None
+    durationInMinutes: Optional[int] = Field(None, ge=1, le=1440)

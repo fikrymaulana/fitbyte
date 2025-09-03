@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Path
 from sqlalchemy.orm import Session
-from app.schemas.activity import ActivityCreate, ActivityResponse
+from app.schemas.activity import ActivityCreate, ActivityResponse, ActivityUpdate
 from app.api.deps import get_db
 from fastapi.security import OAuth2PasswordBearer
-from app.usecase.activity import create_activity_usecase, delete_activity_usecase
+from app.usecase.activity import create_activity_usecase, delete_activity_usecase, update_activity_usecase
 
 router = APIRouter() 
 
@@ -56,3 +56,33 @@ def delete_activity(
         print("ERROR:", e)
         raise HTTPException(status_code=500, detail="Internal server error")
     return {"message": "Activity deleted successfully"}
+
+from app.schemas.activity import ActivityUpdate
+
+@router.patch("/{activityId}", response_model=ActivityResponse, status_code=201)
+def update_activity(
+    activityId: int = Path(..., description="ID aktivitas"),
+    activity: ActivityUpdate = None,
+    db: Session = Depends(get_db),
+    auth_id: str = "1",
+):
+    try:
+        updated_activity, activity_type = update_activity_usecase(db, activityId, auth_id, activity)
+        if not updated_activity:
+            raise HTTPException(status_code=404, detail="Activity not found")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("ERROR:", e)
+        raise HTTPException(status_code=500, detail="Internal server error")
+    return ActivityResponse(
+        activityId=updated_activity.id,
+        activityType=activity_type.type,
+        doneAt=updated_activity.done_at,
+        durationInMinutes=updated_activity.duration_in_minute,
+        caloriesBurned=updated_activity.calories_burned,
+        createdAt=updated_activity.created_at,
+        updatedAt=updated_activity.updated_at,
+    )

@@ -28,3 +28,32 @@ def delete_activity(db: Session, activity_id: int, auth_id: str) -> bool:
     activity.deleted_at = datetime.utcnow()
     db.commit()
     return True
+
+def update_activity(
+    db: Session,
+    activity_id: int,
+    auth_id: str,
+    activity_type_id: int = None,
+    done_at: datetime = None,
+    duration_in_minute: int = None,
+    calories_burned: int = None,
+) -> Activity:
+    activity = db.query(Activity).filter(
+        Activity.id == activity_id,
+        Activity.auth_id == auth_id,
+        Activity.deleted_at.is_(None)
+    ).first()
+    if not activity:
+        return None
+    if activity_type_id is not None:
+        activity.activity_type_id = activity_type_id
+    if done_at is not None:
+        activity.done_at = done_at
+    if duration_in_minute is not None:
+        activity.duration_in_minute = duration_in_minute
+    if calories_burned is not None:
+        activity.calories_burned = calories_burned
+    activity.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(activity)
+    return activity

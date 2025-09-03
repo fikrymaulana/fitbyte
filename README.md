@@ -147,3 +147,27 @@ The project includes full PostgreSQL integration with SQLAlchemy:
 ## License
 
 MIT License
+
+
+
+
+---
+
+## Customization Notes (Forked Version)
+
+This fork has been customized with:
+
+- Added **Docker Compose service for MinIO** (object storage).
+- Added `.gitignore` to exclude `.env` and other local/dev files.
+- Support for **SQLite** as default database for local development 
+  (set `DATABASE_URL=sqlite:///./app.db` in `.env`).
+- Still compatible with PostgreSQL when ready:
+  - Add `postgres` service in `docker-compose.yml`.
+  - Update `.env` with `DATABASE_URL=postgresql+psycopg2://...`.
+
+How to run locally with SQLite + MinIO:
+
+```bash
+docker compose up -d --build
+# API: http://localhost:8000/docs
+# MinIO: http://localhost:9001

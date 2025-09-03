@@ -1,12 +1,30 @@
-version: "3.8"
+# versi ini opsional; boleh dihapus juga
+version: "3.9"
 
 services:
-  app:
-    build: .
-    ports:
-      - "8000:8000"
+  minio:
+    image: minio/minio:latest
     env_file:
       - .env
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
     volumes:
-      - .:/app
+      - minio-data:/data
+
+  app:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      minio:
+        condition: service_started
+
+volumes:
+  minio-data:

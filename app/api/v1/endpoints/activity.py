@@ -53,13 +53,12 @@ def delete_activity(
     except HTTPException:
         raise
     except Exception as e:
-        print("ERROR:", e)
         raise HTTPException(status_code=500, detail="Internal server error")
     return {"message": "Activity deleted successfully"}
 
 from app.schemas.activity import ActivityUpdate
 
-@router.patch("/{activityId}", response_model=ActivityResponse, status_code=201)
+@router.patch("/{activityId}", response_model=ActivityResponse, status_code=200)
 def update_activity(
     activityId: int = Path(..., description="ID aktivitas"),
     activity: ActivityUpdate = None,
@@ -75,7 +74,6 @@ def update_activity(
     except HTTPException:
         raise
     except Exception as e:
-        print("ERROR:", e)
         raise HTTPException(status_code=500, detail="Internal server error")
     return ActivityResponse(
         activityId=updated_activity.id,

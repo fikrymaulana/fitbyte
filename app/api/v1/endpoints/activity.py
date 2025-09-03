@@ -1,9 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Path
 from sqlalchemy.orm import Session
-from app.schemas.activity import ActivityCreate, ActivityResponse, ActivityUpdate
+from app.schemas.activity import ActivityCreate, ActivityResponse, ActivityUpdate, ActivityTypeEnum
 from app.api.deps import get_db
 from fastapi.security import OAuth2PasswordBearer
-from app.usecase.activity import create_activity_usecase, delete_activity_usecase, update_activity_usecase
+from app.usecase.activity import create_activity_usecase, delete_activity_usecase, update_activity_usecase, list_activities_usecase
+from typing import List, Optional
+from datetime import datetime
+
 
 router = APIRouter() 
 
@@ -84,3 +87,31 @@ def update_activity(
         createdAt=updated_activity.created_at,
         updatedAt=updated_activity.updated_at,
     )
+    
+@router.get("/", response_model=List[ActivityResponse], status_code=200)
+def list_activities(
+    db: Session = Depends(get_db),
+    auth_id: str = "1",  # ganti dengan Depends(get_current_user_id) jika sudah pakai JWT
+    limit: int = 5,
+    offset: int = 0,
+    activityType: Optional[ActivityTypeEnum] = None,
+    doneAtFrom: Optional[datetime] = None,
+    doneAtTo: Optional[datetime] = None,
+    caloriesBurnedMin: Optional[int] = None,
+    caloriesBurnedMax: Optional[int] = None,
+):
+    try:
+        result = list_activities_usecase(
+            db=db,
+            auth_id=auth_id,
+            limit=limit,
+            offset=offset,
+            activity_type=activityType.value if activityType else None,
+            done_at_from=doneAtFrom,
+            done_at_to=doneAtTo,
+            calories_burned_min=caloriesBurnedMin,
+            calories_burned_max=caloriesBurnedMax,
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal server error")

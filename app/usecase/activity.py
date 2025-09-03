@@ -1,8 +1,12 @@
 from sqlalchemy.orm import Session
 from app.schemas.activity import ActivityCreate
-from app.repository import activity as activity_repo  # gunakan alias agar jelas
+from app.repository import activity as activity_repo
 from app.models.activity import ActivityType, Activity
-from app.schemas.activity import ActivityUpdate
+from app.schemas.activity import ActivityUpdate, ActivityResponse
+from typing import List, Optional
+from datetime import datetime
+from app.models.activity import ActivityType
+from app.schemas.activity import ActivityResponse
 
 def create_activity_usecase(db: Session, auth_id: str, activity_in: ActivityCreate):
     # Validasi activity type
@@ -61,3 +65,40 @@ def update_activity_usecase(db: Session, activity_id: int, auth_id: str, activit
         calories_burned=calories_burned,
     )
     return updated_activity, activity_type or db.query(ActivityType).filter(ActivityType.id == updated_activity.activity_type_id).first()
+
+
+def list_activities_usecase(
+    db: Session,
+    auth_id: str,
+    limit: int = 5,
+    offset: int = 0,
+    activity_type: Optional[str] = None,
+    done_at_from: Optional[datetime] = None,
+    done_at_to: Optional[datetime] = None,
+    calories_burned_min: Optional[int] = None,
+    calories_burned_max: Optional[int] = None,
+) -> List[ActivityResponse]:
+    activities = activity_repo.list_activities(
+        db=db,
+        auth_id=auth_id,
+        limit=limit,
+        offset=offset,
+        activity_type=activity_type,
+        done_at_from=done_at_from,
+        done_at_to=done_at_to,
+        calories_burned_min=calories_burned_min,
+        calories_burned_max=calories_burned_max,
+    )
+    result = []
+    for act in activities:
+        activity_type_obj = db.query(ActivityType).filter(ActivityType.id == act.activity_type_id).first()
+        result.append(ActivityResponse(
+            activityId=act.id,
+            activityType=activity_type_obj.type if activity_type_obj else "",
+            doneAt=act.done_at,
+            durationInMinutes=act.duration_in_minute,
+            caloriesBurned=act.calories_burned,
+            createdAt=act.created_at,
+            updatedAt=act.updated_at,
+        ))
+    return result

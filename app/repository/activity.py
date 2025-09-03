@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
-from app.models.activity import Activity
+from typing import Optional, List
 from datetime import datetime
+from app.models.activity import Activity, ActivityType
+
 
 def create_activity(db: Session, auth_id: str, activity_type_id: int, duration_minutes: int, done_at: datetime, calories_burned: int = None) -> Activity:
     db_activity = Activity(
@@ -57,3 +59,30 @@ def update_activity(
     db.commit()
     db.refresh(activity)
     return activity
+
+def list_activities(
+    db: Session,
+    auth_id: str,
+    limit: int = 5,
+    offset: int = 0,
+    activity_type: Optional[str] = None,
+    done_at_from: Optional[datetime] = None,
+    done_at_to: Optional[datetime] = None,
+    calories_burned_min: Optional[int] = None,
+    calories_burned_max: Optional[int] = None,
+) -> List[Activity]:
+    query = db.query(Activity).filter(
+        Activity.auth_id == auth_id,
+        Activity.deleted_at.is_(None)
+    )
+    if activity_type:
+        query = query.join(ActivityType).filter(ActivityType.type == activity_type)
+    if done_at_from:
+        query = query.filter(Activity.done_at >= done_at_from)
+    if done_at_to:
+        query = query.filter(Activity.done_at <= done_at_to)
+    if calories_burned_min is not None:
+        query = query.filter(Activity.calories_burned >= calories_burned_min)
+    if calories_burned_max is not None:
+        query = query.filter(Activity.calories_burned <= calories_burned_max)
+    return query.order_by(Activity.done_at.desc()).offset(offset).limit(limit).all()

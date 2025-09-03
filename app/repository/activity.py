@@ -14,3 +14,17 @@ def create_activity(db: Session, auth_id: str, activity_type_id: int, duration_m
     db.commit()
     db.refresh(db_activity)
     return db_activity
+
+from datetime import datetime
+
+def delete_activity(db: Session, activity_id: int, auth_id: str) -> bool:
+    activity = db.query(Activity).filter(
+        Activity.id == activity_id,
+        Activity.auth_id == auth_id,
+        Activity.deleted_at.is_(None) 
+    ).first()
+    if not activity:
+        return False
+    activity.deleted_at = datetime.utcnow()
+    db.commit()
+    return True

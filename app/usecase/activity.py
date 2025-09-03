@@ -22,3 +22,6 @@ def create_activity_usecase(db: Session, auth_id: str, activity_in: ActivityCrea
         calories_burned=calories_burned,
     )
     return db_activity, activity_type
+
+def delete_activity_usecase(db: Session, activity_id: int, auth_id: str) -> bool:
+    return activity_repo.delete_activity(db, activity_id, auth_id)

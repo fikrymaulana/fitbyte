@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Path
 from sqlalchemy.orm import Session
 from app.schemas.activity import ActivityCreate, ActivityResponse
 from app.api.deps import get_db
 from fastapi.security import OAuth2PasswordBearer
-from app.usecase.activity import create_activity_usecase
+from app.usecase.activity import create_activity_usecase, delete_activity_usecase
 
 router = APIRouter() 
 
@@ -38,3 +38,21 @@ def create_activity(
         createdAt=db_activity.created_at,
         updatedAt=db_activity.updated_at,
     )
+    
+@router.delete("/{activityId}", status_code=200)
+def delete_activity(
+    activityId: int = Path(..., description="ID aktivitas"),
+    db: Session = Depends(get_db),
+    auth_id: str = "1",
+    # auth_id: str = Depends(get_current_user_id)
+):
+    try:
+       deleted = delete_activity_usecase(db, activityId, auth_id)
+       if not deleted:
+            raise HTTPException(status_code=404, detail="Activity not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("ERROR:", e)
+        raise HTTPException(status_code=500, detail="Internal server error")
+    return {"message": "Activity deleted successfully"}

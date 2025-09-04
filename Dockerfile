@@ -6,6 +6,8 @@ RUN apt-get update && apt-get upgrade -y && apt-get clean
 
 COPY requirements.txt .
 
+RUN pip install --user --no-cache-dir -r requirements.txt
+
 FROM python:3.9-slim-bullseye
 
 WORKDIR /app

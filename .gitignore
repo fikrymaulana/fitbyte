@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+
+# Virtualenv
+.env/
+venv/
+ENV/
+
+# Environment files
+.env
+.env.*
+
+# VSCode
+.vscode/
+
+# Test cache / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker logs & local data folders
+*.log
+docker-data/
+pgdata/
+minio-data/
+docker-compose.override.yml

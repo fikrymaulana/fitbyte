@@ -1,7 +1,23 @@
-# versi ini opsional; boleh dihapus juga
+# docker-compose.yml
 version: "3.9"
 
 services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: fastapi_user
+      POSTGRES_PASSWORD: fastapi_password
+      POSTGRES_DB: fastapi_db
+    ports:
+      - "5432:5432"                  # opsional: akses dari host
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fastapi_user -d fastapi_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   minio:
     image: minio/minio:latest
     env_file:
@@ -23,7 +39,11 @@ services:
       - ./:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     depends_on:
-      - minio
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
 
 volumes:
+  pgdata:
   minio-data:

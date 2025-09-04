@@ -1,31 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Path
+from fastapi import APIRouter, Depends, HTTPException, status, Path, HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from app.schemas.activity import ActivityCreate, ActivityResponse, ActivityUpdate, ActivityTypeEnum
-from app.api.deps import get_db
-from fastapi.security import OAuth2PasswordBearer
+from app.api.deps import get_db, get_current_user_payload
 from app.usecase.activity import create_activity_usecase, delete_activity_usecase, update_activity_usecase, list_activities_usecase
 from typing import List, Optional
 from datetime import datetime
 
 
-router = APIRouter() 
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-# Dummy function, ganti dengan logic verifikasi JWT Anda
-def get_current_user_id(token: str = Depends(oauth2_scheme)):
-    # Implementasi asli: decode JWT, ambil user_id/auth_id
-    # Contoh dummy:
-    if not token:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    return "dummy-auth-id"  # Ganti dengan hasil decode JWT
+router = APIRouter()
 
 @router.post("/", response_model=ActivityResponse, status_code=201)
 def create_activity(
     activity: ActivityCreate,
     db: Session = Depends(get_db),
-    auth_id: str = "1",
+    payload: dict = Depends(get_current_user_payload),
 ):
+    auth_id = payload["sub"]
     try:
         db_activity, activity_type = create_activity_usecase(db, auth_id, activity)
     except ValueError as e:
@@ -46,9 +36,9 @@ def create_activity(
 def delete_activity(
     activityId: int = Path(..., description="ID aktivitas"),
     db: Session = Depends(get_db),
-    auth_id: str = "1",
-    # auth_id: str = Depends(get_current_user_id)
+    payload: dict = Depends(get_current_user_payload),
 ):
+    auth_id = payload["sub"]
     try:
        deleted = delete_activity_usecase(db, activityId, auth_id)
        if not deleted:
@@ -66,8 +56,9 @@ def update_activity(
     activityId: int = Path(..., description="ID aktivitas"),
     activity: ActivityUpdate = None,
     db: Session = Depends(get_db),
-    auth_id: str = "1",
+    payload: dict = Depends(get_current_user_payload),
 ):
+    auth_id = payload["sub"]
     try:
         updated_activity, activity_type = update_activity_usecase(db, activityId, auth_id, activity)
         if not updated_activity:
@@ -91,7 +82,6 @@ def update_activity(
 @router.get("/", response_model=List[ActivityResponse], status_code=200)
 def list_activities(
     db: Session = Depends(get_db),
-    auth_id: str = "1",  # ganti dengan Depends(get_current_user_id) jika sudah pakai JWT
     limit: int = 5,
     offset: int = 0,
     activityType: Optional[ActivityTypeEnum] = None,
@@ -99,7 +89,9 @@ def list_activities(
     doneAtTo: Optional[datetime] = None,
     caloriesBurnedMin: Optional[int] = None,
     caloriesBurnedMax: Optional[int] = None,
+    payload: dict = Depends(get_current_user_payload),
 ):
+    auth_id = payload["sub"]
     try:
         result = list_activities_usecase(
             db=db,

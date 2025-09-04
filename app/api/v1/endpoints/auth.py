@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from app.core.database import get_db
 from app.core.security import get_password_hash, verify_password, create_access_token
 from app.models.auth import Authentication
+from app.models.profile import Profile
 from app.schemas.auth import (
     RegisterRequest,
     RegisterResponse,
@@ -24,21 +26,31 @@ router = APIRouter(tags=["Auth"])
     "/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED
 )
 def register(payload: RegisterRequest, db: Session = Depends(get_db)):
-    # cek email
     q = db.execute(select(Authentication).where(Authentication.email == payload.email))
     existing = q.scalar_one_or_none()
     if existing:
         raise HTTPException(status_code=409, detail="Email already exists")
 
+    new_id = generate_cuid()
     hashed = get_password_hash(payload.password)
 
-    new_id = generate_cuid()
-
     user = Authentication(id=new_id, email=payload.email, password_hash=hashed)
+    profile = Profile(auth_id=new_id)
 
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+    try:
+        # Add both of them and commit (atomic)
+        db.add(user)
+        db.add(profile)
+        db.commit()
+
+        db.refresh(user)
+    except IntegrityError:
+        db.rollback()
+        # Handle duplicate case or race condidition
+        raise HTTPException(status_code=409, detail="Email already exists")
+    except SQLAlchemyError:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Database error")
 
     token = create_access_token(sub=user.id, email=user.email)
     return RegisterResponse(email=user.email, token=token)

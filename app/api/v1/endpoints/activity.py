@@ -7,8 +7,6 @@ from typing import List, Optional
 from datetime import datetime
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-
-
 router = APIRouter()
 
 @router.post("/", response_model=ActivityResponse, status_code=201)

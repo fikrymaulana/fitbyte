@@ -1,5 +1,5 @@
 from typing import Optional, Literal
-from pydantic import BaseModel, Field, AnyUrl, EmailStr, field_validator
+from pydantic import BaseModel, Field, EmailStr, field_validator, HttpUrl
 
 Preference = Literal["CARDIO", "WEIGHT"]
 WeightUnit = Literal["KG", "LBS"]
@@ -13,7 +13,7 @@ class ProfileOut(BaseModel):
     height: Optional[float] = None
     email: EmailStr
     name: Optional[str] = None
-    imageUri: Optional[AnyUrl] = None
+    imageUri: Optional[HttpUrl] = None
 
 class ProfilePatch(BaseModel):
     preference: Preference
@@ -22,7 +22,7 @@ class ProfilePatch(BaseModel):
     weight: float = Field(ge=10, le=1000)
     height: float = Field(ge=3, le=250)
     name: Optional[str] = Field(default=None, min_length=2, max_length=60)
-    imageUri: Optional[AnyUrl] = None
+    imageUri: Optional[HttpUrl] = None
 
     @field_validator("weight", "height")
     @classmethod

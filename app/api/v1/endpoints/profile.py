@@ -3,7 +3,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-# from app.core.security import decode_access_token
+from app.core.security import decode_access_token
 from app.models.profile import Profile
 from app.models.auth import Authentication
 from app.schemas.profile import ProfileOut, ProfilePatch
@@ -12,22 +12,19 @@ router = APIRouter()
 bearer = HTTPBearer(auto_error=False)
 
 def current_profile(
-    # creds: HTTPAuthorizationCredentials = Depends(bearer),
+    creds: HTTPAuthorizationCredentials = Depends(bearer),
     db: Session = Depends(get_db),
 ) -> Profile:
-    # if not creds or not creds.scheme.lower().startswith("bearer"):
-    #     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="missing token")
+    if not creds or not creds.scheme.lower().startswith("bearer"):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="missing token")
 
-    # try:
-    #     payload = decode_access_token(creds.credentials)
-    # except Exception:
-    #     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid or expired token")
+    try:
+        payload = decode_access_token(creds.credentials)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid or expired token")
 
-    # auth_id = payload.get("sub")
+    auth_id = payload.get("sub")
 
-
-    # contoh hardcode sementara, nanti ganti dengan ambil dari payload token
-    auth_id = "auth123"
     if not auth_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token payload")
 

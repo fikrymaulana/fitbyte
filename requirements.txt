@@ -1,6 +1,7 @@
 fastapi
 uvicorn[standard]
-passlib[bcrypt]
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
 python-multipart
 pydantic[email]
 pydantic-settings
@@ -8,5 +9,6 @@ python-dotenv
 sqlalchemy
 psycopg2-binary
 alembic
-minio
+PyJWT
+cuid2
 minio

@@ -1,28 +1,34 @@
 # app/api/v1/endpoints/file.py
 import uuid
 from io import BytesIO
-from typing import Annotated
 
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Header, status
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from minio import Minio
 
 from app.core.storage import get_minio_client, build_public_uri
 from app.core.config import settings
 from app.schemas.file import FileUploadResponse
 
+#import auth shim
+from app.api.v1.auth_deps import get_current_user
+
 router = APIRouter()
 MAX_SIZE = 100 * 1024  # 100 KiB
 ALLOWED_CT = {"image/jpeg", "image/jpg", "image/png"}
 
 # --- sementara: cek ada header Bearer ---
-def require_bearer(auth: Annotated[str | None, Header(alias="Authorization")] = None):
-    if not auth or not auth.lower().startswith("bearer "):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
-    return True
+#------------------------------------------
+#Placesholder lama(require bearre)- ini dhapus ya
+#---------------------------------------------
+# def require_bearer(auth: Annotated[str | None, Header(alias="Authorization")] = None):
+#     if not auth or not auth.lower().startswith("bearer "):
+#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+#     return True
 
 @router.post("/file", response_model=FileUploadResponse, status_code=200, tags=["file"])
 async def upload_file(
-    _ok: bool = Depends(require_bearer),  # nanti bisa diganti ke deps.get_current_user
+    # _ok: bool = Depends(require_bearer),  # nanti bisa diganti ke deps.get_current_user #(new) ini dhpus
+    current_user = Depends(get_current_user),
     file: UploadFile = File(...),
     client: Minio = Depends(get_minio_client),
 ):

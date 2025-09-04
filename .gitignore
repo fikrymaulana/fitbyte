@@ -28,3 +28,10 @@ docker-data/
 pgdata/
 minio-data/
 docker-compose.override.yml
+
+
+# Local infra & helper scripts
+docker-compose.yml
+Dockerfile
+app.db
+generate_token.py

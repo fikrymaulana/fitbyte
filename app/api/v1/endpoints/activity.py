@@ -6,18 +6,37 @@ from app.usecase.activity import create_activity_usecase, delete_activity_usecas
 from typing import List, Optional
 from datetime import datetime
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from app.core.security import decode_access_token
 
 router = APIRouter()
+bearer = HTTPBearer(auto_error=False)
 
-@router.post("/", response_model=ActivityResponse, status_code=201)
+def current_user(
+    creds: HTTPAuthorizationCredentials = Depends(bearer),
+) -> str:
+    if not creds or not creds.scheme.lower().startswith("bearer"):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="missing token")
+
+    try:
+        payload = decode_access_token(creds.credentials)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid or expired token")
+
+    auth_id = payload.get("sub")
+
+    if not auth_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token payload")
+    
+    return auth_id
+
+@router.post("", response_model=ActivityResponse, status_code=201)
 def create_activity(
     activity: ActivityCreate,
     db: Session = Depends(get_db),
-    payload: dict = Depends(get_current_user_payload),
+    authId: str = Depends(current_user),
 ):
-    auth_id = payload["sub"]
     try:
-        db_activity, activity_type = create_activity_usecase(db, auth_id, activity)
+        db_activity, activity_type = create_activity_usecase(db, authId, activity)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -36,11 +55,10 @@ def create_activity(
 def delete_activity(
     activityId: int = Path(..., description="ID aktivitas"),
     db: Session = Depends(get_db),
-    payload: dict = Depends(get_current_user_payload),
+    authId: str = Depends(current_user),
 ):
-    auth_id = payload["sub"]
     try:
-       deleted = delete_activity_usecase(db, activityId, auth_id)
+       deleted = delete_activity_usecase(db, activityId, authId)
        if not deleted:
             raise HTTPException(status_code=404, detail="Activity not found")
     except HTTPException:
@@ -49,18 +67,16 @@ def delete_activity(
         raise HTTPException(status_code=500, detail="Internal server error")
     return {"message": "Activity deleted successfully"}
 
-from app.schemas.activity import ActivityUpdate
 
 @router.patch("/{activityId}", response_model=ActivityResponse, status_code=200)
 def update_activity(
     activityId: int = Path(..., description="ID aktivitas"),
     activity: ActivityUpdate = None,
     db: Session = Depends(get_db),
-    payload: dict = Depends(get_current_user_payload),
+    authId: str = Depends(current_user),
 ):
-    auth_id = payload["sub"]
     try:
-        updated_activity, activity_type = update_activity_usecase(db, activityId, auth_id, activity)
+        updated_activity, activity_type = update_activity_usecase(db, activityId, authId, activity)
         if not updated_activity:
             raise HTTPException(status_code=404, detail="Activity not found")
     except ValueError as e:
@@ -79,7 +95,7 @@ def update_activity(
         updatedAt=updated_activity.updated_at,
     )
     
-@router.get("/", response_model=List[ActivityResponse], status_code=200)
+@router.get("", response_model=List[ActivityResponse], status_code=200)
 def list_activities(
     db: Session = Depends(get_db),
     limit: int = 5,
@@ -89,13 +105,12 @@ def list_activities(
     doneAtTo: Optional[datetime] = None,
     caloriesBurnedMin: Optional[int] = None,
     caloriesBurnedMax: Optional[int] = None,
-    payload: dict = Depends(get_current_user_payload),
+    authId: str = Depends(current_user),
 ):
-    auth_id = payload["sub"]
     try:
         result = list_activities_usecase(
             db=db,
-            auth_id=auth_id,
+            auth_id=authId,
             limit=limit,
             offset=offset,
             activity_type=activityType.value if activityType else None,

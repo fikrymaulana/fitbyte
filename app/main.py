@@ -23,13 +23,14 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     description="FitByte API Project for tracking fitness activities",
     version="1.0.0",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
 # Supress Pyright's complaint
 HandlerType = Callable[[Request, Exception], Awaitable[JSONResponse]]
 app.add_exception_handler(
     RequestValidationError, cast(HandlerType, request_validation_exception_handler)
+
 )
 
 # CORS

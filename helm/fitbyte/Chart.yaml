@@ -1,0 +1,6 @@
+apiVersion: v2
+name: fitbyte
+description: A Helm chart for FitByte FastAPI application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

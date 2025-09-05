@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fitbyte
+  labels:
+    app.kubernetes.io/name: fitbyte
+    app.kubernetes.io/instance: {{ .Release.Name | default "fitbyte" }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/managed-by: {{ .Release.Service | default "helm" }}
+    helm.sh/chart: fitbyte-0.1.0
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "fitbyte.selectorLabels" . | nindent 4 }}

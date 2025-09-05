@@ -146,4 +146,4 @@ The project includes full PostgreSQL integration with SQLAlchemy:
 
 ## License
 
-MIT License
+Apache License

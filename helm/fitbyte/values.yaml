@@ -1,0 +1,109 @@
+# Default values for fitbyte.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/fikrymaulana/fitbyte
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets:
+  - name: fitbyte-github-secret
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "fitbyte"
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: NodePort
+  port: 80
+  targetPort: 8000
+  nodePort: 31000
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: fitbyte.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: fitbyte-tls
+  #    hosts:
+  #      - fitbyte.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+
+# Environment variables (will be overridden by Vault if enabled)
+env:
+  - name: DATABASE_URL
+    value: "postgresql://postgres:root@postgresql-service:5432/fitbyte"
+  - name: SECRET_KEY
+    value: "your-secret-key"
+  - name: DEBUG
+    value: "false"
+  - name: PROJECT_NAME
+    value: "FitByte"
+  - name: API_V1_STR
+    value: "/api/v1"
+  - name: BACKEND_CORS_ORIGINS
+    value: '["http://localhost:3000", "http://localhost:8080"]'
+  - name: JWT_SECRET
+    value: "your-jwt-secret"
+  - name: JWT_ISS
+    value: "fitbyte-auth"
+  - name: JWT_AUD
+    value: "fitbyte-api"
+  - name: JWT_EXPIRES_SECONDS
+    value: "3600"

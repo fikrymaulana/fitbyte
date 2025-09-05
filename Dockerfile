@@ -1,4 +1,4 @@
-FROM python:3.9-slim-bullseye as builder
+FROM --platform=linux/amd64 python:3.9-slim-bullseye as builder
 
 WORKDIR /app
 
@@ -8,13 +8,11 @@ COPY requirements.txt .
 
 RUN pip install --user --no-cache-dir -r requirements.txt
 
-FROM python:3.9-slim-bullseye
+FROM --platform=linux/amd64 python:3.9-slim-bullseye
 
 WORKDIR /app
 
 RUN apt-get update && apt-get upgrade -y && apt-get clean
-
-WORKDIR /app
 
 COPY --from=builder /root/.local /root/.local
 

@@ -9,6 +9,7 @@ from starlette.responses import JSONResponse
 from app.api.v1.api import api_router
 from app.core.config import settings
 from app.core.database import engine, Base
+from app.models import auth
 from app.core.error_handlers import request_validation_exception_handler
 
 # Create database tables (with error handling)

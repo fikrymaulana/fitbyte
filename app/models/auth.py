@@ -10,7 +10,6 @@ from cuid2 import cuid_wrapper
 
 generate_cuid = cuid_wrapper()
 
-
 class Authentication(Base):
     __tablename__ = "authentications"
 

@@ -5,7 +5,6 @@ Preference = Literal["CARDIO", "WEIGHT"]
 WeightUnit = Literal["KG", "LBS"]
 HeightUnit = Literal["CM", "INCH"]
 
-
 class ProfileOut(BaseModel):
     preference: Optional[Preference] = None
     weightUnit: Optional[WeightUnit] = None
@@ -15,7 +14,6 @@ class ProfileOut(BaseModel):
     email: EmailStr
     name: Optional[str] = None
     imageUri: Optional[HttpUrl] = None
-
 
 class ProfilePatch(BaseModel):
     preference: Preference

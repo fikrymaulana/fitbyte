@@ -41,24 +41,33 @@ def create_activity(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal server error")
+    done_at_str = db_activity.done_at.isoformat().replace('+00:00', 'Z').replace('000Z', 'Z').replace('00Z', 'Z').replace('0Z', 'Z')
     return ActivityResponse(
-        activityId=db_activity.id,
+        activityId=str(db_activity.id),
         activityType=activity_type.type,
-        doneAt=db_activity.done_at,
+        doneAt=done_at_str,
         durationInMinutes=db_activity.duration_in_minute,
         caloriesBurned=db_activity.calories_burned,
         createdAt=db_activity.created_at,
         updatedAt=db_activity.updated_at,
     )
-    
+
+@router.delete("", status_code=404)
+def patch_activity_missing_id():
+    raise HTTPException(status_code=404, detail="Activity ID is required")
+
 @router.delete("/{activityId}", status_code=200)
 def delete_activity(
-    activityId: int = Path(..., description="ID aktivitas"),
+    activityId: str = Path(..., description="ID aktivitas"),
     db: Session = Depends(get_db),
     authId: str = Depends(current_user),
 ):
     try:
-       deleted = delete_activity_usecase(db, activityId, authId)
+        activity_id_int = int(activityId)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    try:
+       deleted = delete_activity_usecase(db, activity_id_int, authId)
        if not deleted:
             raise HTTPException(status_code=404, detail="Activity not found")
     except HTTPException:
@@ -68,15 +77,23 @@ def delete_activity(
     return {"message": "Activity deleted successfully"}
 
 
+@router.patch("", status_code=404)
+def patch_activity_missing_id():
+    raise HTTPException(status_code=404, detail="Activity ID is required")
+
 @router.patch("/{activityId}", response_model=ActivityResponse, status_code=200)
 def update_activity(
-    activityId: int = Path(..., description="ID aktivitas"),
+    activityId: str = Path(..., description="ID aktivitas"),
     activity: ActivityUpdate = None,
     db: Session = Depends(get_db),
     authId: str = Depends(current_user),
 ):
     try:
-        updated_activity, activity_type = update_activity_usecase(db, activityId, authId, activity)
+        activity_id_int = int(activityId)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    try:
+        updated_activity, activity_type = update_activity_usecase(db, activity_id_int, authId, activity)
         if not updated_activity:
             raise HTTPException(status_code=404, detail="Activity not found")
     except ValueError as e:
@@ -85,10 +102,11 @@ def update_activity(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal server error")
+    done_at_str = updated_activity.done_at.isoformat().replace('+00:00', 'Z').replace('000Z', 'Z').replace('00Z', 'Z').replace('0Z', 'Z')
     return ActivityResponse(
-        activityId=updated_activity.id,
+        activityId=str(updated_activity.id),
         activityType=activity_type.type,
-        doneAt=updated_activity.done_at,
+        doneAt=done_at_str,
         durationInMinutes=updated_activity.duration_in_minute,
         caloriesBurned=updated_activity.calories_burned,
         createdAt=updated_activity.created_at,

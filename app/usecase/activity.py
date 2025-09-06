@@ -55,6 +55,9 @@ def update_activity_usecase(db: Session, activity_id: int, auth_id: str, activit
         activity_type = db.query(ActivityType).filter(ActivityType.id == activity.activity_type_id).first()
         calories_burned = activity_type.calories_per_minute * activity_in.durationInMinutes
 
+    # Validate doneAt
+    ActivityUpdate.validate_done_at(activity_in.doneAt)
+
     updated_activity = activity_repo.update_activity(
         db=db,
         activity_id=activity_id,
@@ -92,10 +95,11 @@ def list_activities_usecase(
     result = []
     for act in activities:
         activity_type_obj = db.query(ActivityType).filter(ActivityType.id == act.activity_type_id).first()
+        done_at_str = act.done_at.isoformat().replace('+00:00', 'Z').replace('000Z', 'Z').replace('00Z', 'Z').replace('0Z', 'Z')
         result.append(ActivityResponse(
-            activityId=act.id,
+            activityId=str(act.id),
             activityType=activity_type_obj.type if activity_type_obj else "",
-            doneAt=act.done_at,
+            doneAt=done_at_str,
             durationInMinutes=act.duration_in_minute,
             caloriesBurned=act.calories_burned,
             createdAt=act.created_at,

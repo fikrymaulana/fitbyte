@@ -21,7 +21,7 @@ class ProfilePatch(BaseModel):
     heightUnit: HeightUnit
     weight: int = Field(ge=10, le=1000)
     height: int = Field(ge=3, le=250)
-    name: Optional[str] = Field(default=None, min_length=2, max_length=60)
+    name: str = Field(min_length=2, max_length=60)
     imageUri: HttpUrl
 
     @field_validator("weight", "height")

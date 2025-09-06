@@ -20,25 +20,38 @@ class ActivityCreate(BaseModel):
     doneAt: datetime
     durationInMinutes: int = Field(..., ge=1, le=1440)
 
-    @field_validator("doneAt")
+    @field_validator("doneAt", mode="before")
     @classmethod
     def validate_done_at(cls, v):
-        # Ensure it's a valid datetime 
-        if not isinstance(v, datetime):
-            raise ValueError("doneAt must be a valid datetime")
+        # Check for None
+        if v is None:
+            raise ValueError("doneAt is required")
+
+        # If doneAt is string, check if it's in correct datetime format
+        if isinstance(v, str):
+            try:
+                v = datetime.fromisoformat(v.replace('Z', '+00:00'))
+            except ValueError:
+                raise ValueError("invalid")
+        else:
+            raise ValueError("invalid")
         return v
 
-    @field_validator("durationInMinutes")
+    @field_validator("durationInMinutes", mode="before")
     @classmethod
     def validate_integer(cls, v):
+        if isinstance(v, bool):
+            raise ValueError("durationInMinutes must be a number, not a boolean")
+        if not isinstance(v, (int, float)):
+            raise ValueError("durationInMinutes must be a number")
         if isinstance(v, float) and not v.is_integer():
-            raise ValueError("must be an integer")
+            raise ValueError("durationInMinutes must be an integer")
         return int(v)
 
 class ActivityResponse(BaseModel):
-    activityId: int
+    activityId: str
     activityType: str
-    doneAt: datetime
+    doneAt: str
     durationInMinutes: int
     caloriesBurned: int
     createdAt: datetime
@@ -47,6 +60,32 @@ class ActivityResponse(BaseModel):
 from typing import Optional
 
 class ActivityUpdate(BaseModel):
-    activityType: Optional[ActivityTypeEnum] = Field(None, description="Activity type name")
-    doneAt: Optional[datetime] = None
-    durationInMinutes: Optional[int] = Field(None, ge=1, le=1440)
+    activityType: ActivityTypeEnum = Field(..., description="Activity type name")
+    doneAt: datetime
+    durationInMinutes: int = Field(..., ge=1, le=1440)
+
+    @field_validator("doneAt", mode="before")
+    @classmethod
+    def validate_done_at(cls, v):
+        # If doneAt is string, check if it's in correct datetime format
+        if isinstance(v, str):
+            try:
+                v = datetime.fromisoformat(v.replace('Z', '+00:00'))
+            except ValueError:
+                raise ValueError("invalid date time format")
+        elif isinstance(v, datetime):
+            return v
+        else:
+            raise ValueError("invalid")
+        return v
+
+    @field_validator("durationInMinutes", mode="before")
+    @classmethod
+    def validate_integer(cls, v):
+        if isinstance(v, bool):
+            raise ValueError("durationInMinutes must be a number, not a boolean")
+        if not isinstance(v, (int, float)):
+            raise ValueError("durationInMinutes must be a number")
+        if isinstance(v, float) and not v.is_integer():
+            raise ValueError("durationInMinutes must be an integer")
+        return int(v)

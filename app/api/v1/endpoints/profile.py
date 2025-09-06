@@ -77,8 +77,8 @@ def patch_user(
         "preference": me.preference,
         "weightUnit": me.weight_unit,
         "heightUnit": me.height_unit,
-        "weight": me.weight if me.weight is not None else None,
-        "height": me.height if me.height is not None else None,
+        "weight": int(me.weight) if me.weight is not None else None,
+        "height": int(me.height) if me.height is not None else None,
         "name": me.name,
         "imageUri": me.image_uri,
     }

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Path
 from sqlalchemy.orm import Session
 from app.schemas.activity import ActivityCreate, ActivityResponse, ActivityUpdate, ActivityTypeEnum
-from app.api.deps import get_db, get_current_user_payload
+from app.api.deps import get_db
 from app.usecase.activity import create_activity_usecase, delete_activity_usecase, update_activity_usecase, list_activities_usecase
 from typing import List, Optional
 from datetime import datetime

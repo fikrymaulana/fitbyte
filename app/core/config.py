@@ -21,14 +21,16 @@ class Settings(BaseSettings):
     JWT_AUD: str = "fitbyte-api"
     JWT_EXPIRES_SECONDS: int = 3600
 
-    # === MinIO (tetap dipakai endpoint upload) ===
-    # Simpan apa adanya; kalau env kosong ya biarkan None/False sesuai kebutuhanmu.
-    MINIO_ENDPOINT: str | None = None      # "minio:9000" tanpa http/https
-    MINIO_ACCESS_KEY: str | None = None
-    MINIO_SECRET_KEY: str | None = None
-    MINIO_BUCKET: str | None = "files"
+    # MinIO configuration
+    MINIO_ENDPOINT: str = "localhost"
+    MINIO_PORT: int = 9000
+    MINIO_ACCESS_KEY: str = "jmiLvxklmDtGadZ8dabO"
+    MINIO_SECRET_KEY: str = "KlAEFY5jH094lRsAHKoddrL8cfEMfwGmrJzGs8lB"
     MINIO_SECURE: bool = False
-    MINIO_REGION: str | None = None
+    MINIO_BUCKET: str = "fitbyte"
+
+    class Config:
+        env_file = ".env"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

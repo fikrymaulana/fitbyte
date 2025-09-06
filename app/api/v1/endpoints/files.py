@@ -1,8 +1,9 @@
 import uuid
 import io
 from typing import Annotated
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from app.core.minio_client import MinIOClient
+from app.api.deps import get_current_user_payload
 
 router = APIRouter()
 
@@ -10,7 +11,10 @@ ALLOWED_EXTENSIONS = {"jpeg", "jpg", "png"}
 MAX_FILE_SIZE = 100 * 1024  # 100 KiB
 
 @router.post("/file")
-async def upload_file(file: Annotated[UploadFile, File(...)]) -> dict:
+async def upload_file(
+    file: Annotated[UploadFile, File(...)],
+    current_user: dict = Depends(get_current_user_payload)
+) -> dict:
   """
   Upload a file to MinIO storage.
 

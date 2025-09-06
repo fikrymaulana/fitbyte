@@ -26,8 +26,6 @@ def sanitize_email_input(v: str) -> str:
     if re.search(r"\s", v) or _CTRL_RE.search(v):
         raise ValueError("Email must not contain whitespace or control characters")
 
-    v = v.lower()
-
     if len(v) > 254:
         raise ValueError("Email must be at most 254 characters")
 

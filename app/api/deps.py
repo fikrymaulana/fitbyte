@@ -2,7 +2,7 @@ from typing import Optional, Dict, Any
 
 from sqlalchemy.orm import Session
 
-from fastapi import Depends, HTTPException, Header, status
+from fastapi import Depends, HTTPException, Header, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 import jwt
@@ -92,3 +92,12 @@ def get_current_user(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
     return user
+
+async def validate_content_type(request: Request):
+    if request.method in ["POST", "PUT", "PATCH"]:
+        content_type = request.headers.get("content-type", "").lower()
+        if not content_type.startswith("application/json"):
+            raise HTTPException(
+                status_code=400,
+                detail="Content-Type must be application/json"
+            )

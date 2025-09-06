@@ -19,13 +19,23 @@ class ProfilePatch(BaseModel):
     preference: Preference
     weightUnit: WeightUnit
     heightUnit: HeightUnit
-    weight: float = Field(ge=10, le=1000)
-    height: float = Field(ge=3, le=250)
+    weight: int = Field(ge=10, le=1000)
+    height: int = Field(ge=3, le=250)
     name: Optional[str] = Field(default=None, min_length=2, max_length=60)
-    imageUri: Optional[HttpUrl] = None
+    imageUri: HttpUrl
 
     @field_validator("weight", "height")
     @classmethod
-    def to_float(cls, v):
-        # ensure JSON numbers are float (SQLAlchemy Numeric is fine receiving Decimal, but we keep float here)
-        return float(v)
+    def validate_integer(cls, v):
+        if isinstance(v, float) and not v.is_integer():
+            raise ValueError("must be an integer")
+        return int(v)
+
+    @field_validator("imageUri")
+    @classmethod
+    def validate_image_uri(cls, v):
+        if str(v).strip() == "":
+            raise ValueError("imageUri cannot be empty")
+        if not (str(v).lower().endswith(('.jpg', '.jpeg', '.png'))):
+            raise ValueError("imageUri must be a URI ending with .jpg, .jpeg, or .png")
+        return v

@@ -1,10 +1,9 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from app.api.v1.endpoints import activity, profile, auth, file
+from app.api.deps import validate_content_type
 
 api_router = APIRouter()
-
-# router milik tim
-api_router.include_router(profile.router, prefix="", tags=["user"])
-api_router.include_router(auth.router)
-api_router.include_router(activity.router, prefix="/activity", tags=["activity"])
-api_router.include_router(file.router, tags=["file"])
+api_router.include_router(profile.router, prefix="", tags=["user"], dependencies=[Depends(validate_content_type)])
+api_router.include_router(auth.router, dependencies=[Depends(validate_content_type)])
+api_router.include_router(activity.router, prefix="/activity", tags=["activity"], dependencies=[Depends(validate_content_type)])
+api_router.include_router(files.router, prefix="", tags=["file"])

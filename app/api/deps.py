@@ -12,6 +12,7 @@ from app.core.config import settings
 from app.core.security import decode_access_token
 from app.models.auth import Authentication
 
+# Skema ini sudah Anda definisikan, dan akan kita gunakan.
 bearer = HTTPBearer(auto_error=True)
 
 
@@ -40,7 +41,7 @@ def _get_token_from_header(authorization: Optional[str]) -> Optional[str]:
     return parts[1]
 
 
-# ── Stateless: verify JWT only, no DB roundtrip ─────────────────────────────────
+# ── FUNGSI INI TIDAK DIUBAH ─────────────────────────────────
 def get_current_user_payload(
     authorization: Optional[str] = Header(None),
 ) -> Dict[str, Any]:
@@ -52,7 +53,6 @@ def get_current_user_payload(
             headers={"WWW-Authenticate": "Bearer"},
         )
     payload = decode_access_token(token)
-    # Optional: basic sanity checks
     if not payload.get("sub") or not payload.get("email"):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -62,18 +62,17 @@ def get_current_user_payload(
     return payload
 
 
-# ── Stateful: verify JWT + ensure user exists & not soft-deleted ───────────────
+# ── HANYA FUNGSI INI YANG KITA PERBAIKI ───────────────
 def get_current_user(
-    authorization: Optional[str] = Header(None),
+    # PERUBAHAN UTAMA: Ganti 'Header(None)' dengan 'Depends(bearer)'
+    # Ini akan menghubungkannya langsung ke tombol "Authorize" global.
+    creds: HTTPAuthorizationCredentials = Depends(bearer),
     db: Session = Depends(get_db),
 ) -> Authentication:
-    token = _get_token_from_header(authorization)
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    # Kita sekarang mendapatkan token langsung dari 'creds', lebih andal.
+    token = creds.credentials
+    
+    # Sisa logika di bawah ini sudah benar dan tidak diubah.
     payload = decode_access_token(token)
     user_id = payload.get("sub")
     if not user_id:
@@ -89,7 +88,6 @@ def get_current_user(
         .one_or_none()
     )
     if not user:
-        # choose 404 (not found) or 401; spec-wise 401 is also acceptable
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )

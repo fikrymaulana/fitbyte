@@ -6,14 +6,8 @@ from fastapi.exceptions import RequestValidationError
 from starlette.responses import JSONResponse
 
 from app.core.config import settings
+from app.api.v1.api import api_router           # <= penting
 from app.core.error_handlers import request_validation_exception_handler
-
-# (opsional) inisialisasi tabel bila pakai SQLAlchemy
-try:
-    from app.core.database import Base, engine
-    Base.metadata.create_all(bind=engine)
-except Exception:
-    pass
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -22,13 +16,11 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
 )
 
-# Global error handler
 HandlerType = Callable[[Request, Exception], Awaitable[JSONResponse]]
 app.add_exception_handler(
     RequestValidationError, cast(HandlerType, request_validation_exception_handler)
 )
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.BACKEND_CORS_ORIGINS,
@@ -36,6 +28,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# >>> mount semua endpoint v1 di bawah /api/v1
+app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.get("/health")
 def health():

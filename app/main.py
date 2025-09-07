@@ -6,11 +6,14 @@ import sys
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
+from fastapi.security import HTTPBearer
+
 from starlette.responses import JSONResponse
 
 from app.core.config import settings
 from app.api.v1.api import api_router           # <= penting
 from app.core.error_handlers import request_validation_exception_handler
+from app.core.database import Base, engine
 
 # Create database tables (with error handling)
 try:
@@ -36,6 +39,8 @@ app = FastAPI(
     description="FitByte API Project for tracking fitness activities",
     version="1.0.0",
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    components={"securitySchemes": {"BearerAuth": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"}}},
+    security=[{"BearerAuth": []}],
 )
 
 HandlerType = Callable[[Request, Exception], Awaitable[JSONResponse]]

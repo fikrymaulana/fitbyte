@@ -1,19 +1,35 @@
 import uuid
 import io
-from typing import Annotated
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from typing import Annotated, Optional
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.core.minio_client import MinIOClient
 from app.api.deps import get_current_user_payload
 
 router = APIRouter()
 
+# Security scheme for Bearer token
+bearer = HTTPBearer(auto_error=False)
+
 ALLOWED_EXTENSIONS = {"jpeg", "jpg", "png"}
 MAX_FILE_SIZE = 100 * 1024  # 100 KiB
 
+def get_current_user(creds: HTTPAuthorizationCredentials) -> dict:
+    if not creds:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    auth_header = f"Bearer {creds.credentials}"
+
+    return get_current_user_payload(auth_header)
+
 @router.post("/file")
 async def upload_file(
-    file: Annotated[UploadFile, File(...)],
-    current_user: dict = Depends(get_current_user_payload)
+    file: Optional[UploadFile] = File(None),
+    creds: HTTPAuthorizationCredentials = Depends(bearer)
 ) -> dict:
   """
   Upload a file to MinIO storage.
@@ -21,6 +37,16 @@ async def upload_file(
   - File must be JPEG, JPG, or PNG format
   - Maximum file size is 100 KiB
   """
+
+  # Validate Bearer token first
+  current_user = get_current_user(creds)
+
+  # Validate file if provided
+  if not file:
+    raise HTTPException(
+        status_code=400,
+        detail="File is required"
+    )
 
   # Validate file extension
   file_extension = file.filename.split(".")[-1].lower() if "." in file.filename else ""

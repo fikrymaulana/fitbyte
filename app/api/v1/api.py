@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from app.api.v1.endpoints import activity, profile, auth, file
+from app.api.v1.endpoints import activity, profile, auth, files
 from app.api.deps import validate_content_type
 
 api_router = APIRouter()

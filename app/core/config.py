@@ -29,9 +29,6 @@ class Settings(BaseSettings):
     MINIO_SECURE: bool = False
     MINIO_BUCKET: str = "fitbyte"
 
-    class Config:
-        env_file = ".env"
-
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 settings = Settings()
